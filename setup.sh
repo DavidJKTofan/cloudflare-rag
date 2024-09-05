@@ -10,8 +10,22 @@ npx wrangler vectorize create-metadata-index cloudflare-rag-index --property-nam
 
 npx wrangler r2 bucket create cloudflare-rag-bucket
 
-# After running this, you'll need to replace the database_id in wrangler.toml
-npx wrangler d1 create cloudflare-rag
+# Step 1: Run the wrangler command and capture the database_id
+output=$(npx wrangler d1 create cloudflare-rag)
+# Extract the new database_id from the output using grep and cut
+new_database_id=$(echo "$output" | grep "database_id =" | cut -d '"' -f 2)
+# Step 2: Replace the old database_id in the wrangler.toml file
+sed -i '' "s/database_id = \".*\"/database_id = \"$new_database_id\"/" wrangler.toml
+echo "Updated wrangler.toml with new database_id: $new_database_id"
 
-# After running this, you'll need to replace the id in wrangler.toml
-npx wrangler kv namespace create rate-limiter
+# Step 3: Create the KV namespace and capture the id
+kv_output=$(npx wrangler kv namespace create rate-limiter)
+new_kv_id=$(echo "$kv_output" | grep "id =" | awk -F '"' '{print $2}')
+# Step 4: Replace the old KV id in the wrangler.toml file for the rate_limiter binding
+sed -i '' "/\[\[kv_namespaces\]\]/,/^\[/{
+  /binding = \"rate_limiter\"/{
+    n
+    s/id = \".*\"/id = \"$new_kv_id\"/
+  }
+}" wrangler.toml
+echo "Updated wrangler.toml with new KV id for rate_limiter: $new_kv_id"

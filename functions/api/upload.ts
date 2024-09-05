@@ -171,7 +171,8 @@ export const onRequest: PagesFunction<Env> = async (ctx) => {
           extractTextFromPDF(file),
         ]);
 
-        await streamResponse({ message: "Extracted text from PDF" });
+        await streamResponse({ message: "Extracting text from PDF..." });
+        console.log("Extracting text from PDF...")
 
         const insertResult = await insertDocument(db, file, textContent, sessionId, r2Url);
 
